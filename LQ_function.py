@@ -41,11 +41,17 @@ def Error(P, Q):
 algorithm of algebra Riccati equation
 '''
 def Sample_AQE(N_sample, A_sample, Q_0, error_level):
-    if A_sample.ndim == 2:
+    if A_sample.ndim == 2: #1 sample
         (n, d) = A_sample.shape
-        sample_size = 1
-    elif A_sample.ndim == 3:
+        A_2nd_moment = np.kron(A_sample[:,:].T, A_sample[:,:].T )
+        N_1st_moment = N_sample
+    elif A_sample.ndim == 3: #multi sample
         (sample_size, n, d) = A_sample.shape
+        A_sample_kroneck = np.zeros((sample_size, d*d, n*n))
+        for i in range(sample_size):
+            A_sample_kroneck[i,:,:] = np.kron(A_sample[i,:,:].T, A_sample[i,:,:].T )
+        A_2nd_moment = A_sample_kroneck.mean(0)
+        N_1st_moment = N_sample.mean(0)
     else:
         print("dimension error")
     
@@ -60,8 +66,12 @@ def Sample_AQE(N_sample, A_sample, Q_0, error_level):
     Q = np.copy(Q_0)
     Q_temp = np.copy(Q_0)
     Q =  N_1st_moment + (A_2nd_moment @ Pi(Q, n).reshape(n*n,1)).reshape(d,d)
+    i = 1
     while Error(Q , Q_temp) > error_level :
         Q_temp[:,:] = Q[:,:]
         Q =  N_1st_moment + (A_2nd_moment @ Pi(Q, n).reshape(n*n,1)).reshape(d, d)
-    return Q
-
+        i=i+1
+        if np.linalg.norm(Q-Q_temp)>1e+30:
+            Q = np.nan * np.eye(d)
+            break
+    return Q,i

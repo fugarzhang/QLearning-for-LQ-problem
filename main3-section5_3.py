@@ -109,7 +109,7 @@ plt.legend()
 
 plt.savefig("eg3.pdf")
 
-print(Q1)
-print(error1[-1], error2[-1])
-print(Q1-Q_star)
-print(Q2-Q_star)
+# print(Q1)
+# print(error1[-1], error2[-1])
+# print(Q1-Q_star)
+# print(Q2-Q_star)

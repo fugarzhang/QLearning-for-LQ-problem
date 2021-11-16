@@ -92,7 +92,7 @@ plt.figure(figsize=(7, 5))
 plt.xlim(len(x)-length, len(x))
 #plt.ylim(0, 0.2)
 plt.ylabel(r"$\Vert \,Q_t - Q^* \Vert_1$")
-plt.xlabel("time")
+plt.xlabel(r"$t$")
 plt.semilogy(x[-length:],error3[-length:], color='black', linewidth="3",
          label=r"$\alpha_t = 1/(t+1)$")
 plt.semilogy(x[-length:],error1[-length:], color='red', linestyle="--",

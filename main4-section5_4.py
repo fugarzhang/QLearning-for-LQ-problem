@@ -60,7 +60,7 @@ def generate_coeff(discount=0.01):
 time = 50
 
 #error level
-error_level = 1e-4
+error_level = 1e-3
 
 
 
@@ -79,8 +79,13 @@ norm_star = np.array(time)
 norm_AQE_1 = np.array(time)
 norm_AQE_2 = np.array(time)
 
+count_AQE_itr_1 = np.array([])
+count_AQE_itr_2 = np.array([])
+
+
+
 #initial state
-X_ini = np.array([[1],[0]])
+X_ini = np.array([[0],[1]])
 
 X_adapt[:, [0]] = np.copy(X_ini)
 X_star[:, [0]] = np.copy(X_ini)
@@ -96,6 +101,7 @@ control_adapt_AQE_2 = np.zeros((m, n))
 
 for i in range(time-1):
     A_sample[i, ] = generate_coeff(0.25)
+
     Phi1 = LQ.Phi( A_sample[i,], N_sample[i,], Q)    
     Q += (2/(2+i)) * ( Phi1 - Q)
     
@@ -108,7 +114,10 @@ for i in range(time-1):
     
     #adapted control by AQE algorithm: update every 5 step
     if  i and (not i%5) :
-        Q_AQE_1 = LQ.Sample_AQE(N_sample[:i+1], A_sample[0:i+1, ], Q_AQE_1, error_level)
+        #update Q
+        Q_AQE_1, count_itr_temp = LQ.Sample_AQE(N_sample[:i+1], A_sample[0:i+1, ], Q_AQE_1, error_level)
+        #iteration-time
+        count_AQE_itr_1=np.append(count_AQE_itr_1,count_itr_temp)
         if not np.count_nonzero(np.isnan(Q_AQE_1)):
             control_adapt_AQE_1 = LQ.Gamma(Q_AQE_1, n)
         else:
@@ -118,8 +127,12 @@ for i in range(time-1):
         
 #    #adapted control by AQE algorithm: update every 20 step
     if  i and (not i%20) :
-        Q_AQE_2 = LQ.Sample_AQE(N_sample[:i+1], A_sample[0:i+1, ], Q_AQE_2, error_level)
+        #updating Q
+        Q_AQE_2, count_itr_temp = LQ.Sample_AQE(N_sample[:i+1], A_sample[0:i+1, ], Q_AQE_2, error_level)
+        #iteration-time
+        count_AQE_itr_2=np.append(count_AQE_itr_2,count_itr_temp)
         if not np.count_nonzero(np.isnan(Q_AQE_2)):
+            # update control
             control_adapt_AQE_2 = LQ.Gamma(Q_AQE_2, n)
         else:
             Q_AQE_2 = np.copy(np.eye(d))
@@ -132,6 +145,11 @@ norm_adapt = np.linalg.norm(X_adapt, axis =0)
 norm_star = np.linalg.norm(X_star, axis =0)
 norm_AQE_1 = np.linalg.norm(X_AQE_1, axis =0)
 norm_AQE_2 = np.linalg.norm(X_AQE_2, axis =0)
+
+
+print(count_AQE_itr_2)
+for i in count_AQE_itr_1:
+    print("%d"%i,'&',end='')
 
 
 #the period that shows in the graph
@@ -161,5 +179,3 @@ plt.legend(loc = 'lower left')
 
 plt.tight_layout()
 plt.savefig("eg4-1.pdf")
-
-
